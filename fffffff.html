@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainrot Collection Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the move dropdown */
+        .move-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            z-index: 10;
+            margin-top: 4px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 0.375rem; /* rounded-md */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            width: max-content;
+            padding: 4px;
+        }
+        .move-dropdown button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 4px 8px;
+            font-size: 0.875rem; /* text-sm */
+            color: #374151; /* text-gray-700 */
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        .move-dropdown button:hover:not(:disabled) {
+            background-color: #f3f4f6; /* hover:bg-gray-100 */
+        }
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            .move-dropdown {
+                background-color: #1f2937; /* dark:bg-gray-700 */
+                border-color: #4b5563; /* dark:border-gray-600 */
+            }
+            .move-dropdown button {
+                color: #d1d5db; /* dark:text-gray-300 */
+            }
+            .move-dropdown button:hover:not(:disabled) {
+                background-color: #374151; /* dark:hover:bg-gray-600 */
+            }
+        }
+        /* Style the brainrot div for list rendering */
+        .brainrot-item {
+            position: relative;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        <header class="text-center">
+            <h1 class="text-4xl font-bold mb-2">🧠 Brainrot Collector 🦠</h1>
+            <p class="text-sm italic">Tracking the mutations and traits of your digital addiction.</p>
+        </header>
+        
+        <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Account Management (<span id="current-account-display"></span>)</h2>
+            <div class="space-y-4">
+                <div class="flex items-center space-x-4">
+                    <label for="accountSelect" class="font-medium">Select Account:</label>
+                    <select id="accountSelect" class="flex-grow p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 dark:text-gray-100"></select>
+                    <button id="deleteAccountBtn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
+                        Delete Current
+                    </button>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="text" id="newAccountNameInput" placeholder="New Account Name" class="flex-grow p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 dark:text-gray-100">
+                    <button id="addAccountBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
+                        Add Account
+                    </button>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t dark:border-gray-700">
+                    <div>
+                        <button id="exportAllBtn" class="bg-blue-500 hover:bg-blue-600 text-white text-sm py-1.5 px-3 rounded-md transition-colors mr-2">
+                            Export All Data
+                        </button>
+                        <button id="importAllBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white text-sm py-1.5 px-3 rounded-md transition-colors">
+                            Import Data
+                        </button>
+                        <input type="file" id="importJsonFile" accept=".json" class="hidden">
+                    </div>
+                    <button id="clearAllDataBtn" class="bg-gray-500 hover:bg-gray-600 text-white text-sm py-1.5 px-3 rounded-md transition-colors">
+                        Clear ALL Data
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">New/Edit Brainrot</h2>
+            <div class="space-y-4">
+                <input type="text" id="newBrainrotInput" placeholder="Brainrot" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100">
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <select id="raritySelect" class="p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700">
+                        <option value="Common">Common</option>
+                        <option value="Rare">Rare</option>
+                        <option value="Epic">Epic</option>
+                        <option value="Legendary">Legendary</option>
+                        <option value="Mythic">Mythic</option>
+                        <option value="Brainrot God">Brainrot God</option>
+                        <option value="Secret">Secret</option>
+                        <option value="OG">OG</option>
+                    </select>
+
+                    <select id="mutationSelect" class="p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700">
+                    <option value="None">None</option>
+                    <option value="Gold">Gold</option>
+                    <option value="Diamond">Diamond</option>
+                    <option value="Rainbow">Rainbow</option>
+                    <option value="Lava">Lava</option>
+                    <option value="Galaxy">Galaxy</option>
+                    <option value="Candy">Candy</option>
+                    <option value="Bloodrot">Bloodrot</option>
+                    <option value="Yin Yang">Yin Yang</option>
+                    <option value="Radioactive">Radioactive</option>
+                    </select>
+
+                    <input type="text" id="perSecondInput" placeholder="Per Second (e.g., 0.5)" class="p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700">
+                    <input type="text" id="costInput" placeholder="Cost (e.g., 100)" class="p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700">
+                </div>
+
+                <div class="flex space-x-2">
+                    <select id="traitSelect" class="p-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 w-1/3">
+                        <option value="None">None</option>
+                        <option value="Rain">Rain</option>
+                        <option value="Snowy">Snowy</option>
+                        <option value="Starfall">Starfall</option>
+                        <option value="Galactic">Galactic</option>
+                        <option value="Bombardiro Raid">Bombardiro Raid</option>
+                        <option value="Matteo's Hat">Matteo's Hat</option>
+                        <option value="Fin">Fin</option>
+                        <option value="Taco">Taco</option>
+                        <option value="TungTung">TungTung</option>
+                        <option value="Glitch">Glitch</option>
+                        <option value="Crab">Crab</option>
+                        <option value="Solar Flare">Solar Flare</option>
+                        <option value="4th Fireworks">4th Fireworks</option>
+                        <option value="Nyan">Nyan</option>
+                        <option value="Concert">Concert</option>
+                        <option value="10B">10B</option>
+                        <option value="Bloodmoon">Bloodmoon</option>
+                        <option value="Brazil">Brazil</option>
+                        <option value="Bubblegum">Bubblegum</option>
+                        <option value="UFO">UFO</option>
+                        <option value="Sleepy">Sleepy</option>
+                        <option value="Dragon">Dragon</option>
+                        <option value="Spyder">Spyder</option>
+                        <option value="Paint">Paint</option>
+                        <option value="Extinct">Extinct</option>
+                        <option value="Mexican Hat">Mexican Hat</option>
+                        <option value="Witch Hat">Witch Hat</option>
+                        <option value="Graduation Tie">Graduation Tie</option>
+                        <option value="Meowl">Meowl</option>
+                        <option value="Strawberry">Strawberry</option>
+                        <option value="Indonesia">Indonesia</option>
+                        <option value="RIP">RIP</option>
+                        <option value="Pumpkin">Pumpkin</option>
+                        <option value="Santa Hat">Santa Hat</option>
+                    </select>
+                    <button id="addSelectedTraitBtn" class="bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-gray-200 font-bold py-2 px-3 rounded-md transition-colors text-sm">
+                        Add
+                    </button>
+                    <input type="text" id="selectedTraitsDisplay" placeholder="Current Traits" readonly class="flex-grow p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-700 dark:text-gray-100 cursor-default">
+                    <button id="clearTraitsBtn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-3 rounded-md transition-colors text-sm">
+                        Clear
+                    </button>
+                </div>
+                
+                <button id="addBrainrotBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-md transition-colors text-lg">
+                    Add Brainrot
+                </button>
+                
+                <div id="editButtonsDiv" class="hidden flex space-x-4">
+                    <button id="saveEditBtn" class="flex-grow bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 rounded-md transition-colors text-lg">
+                        Save Changes
+                    </button>
+                    <button id="cancelEditBtn" class="flex-grow bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 rounded-md transition-colors text-lg">
+                        Cancel Edit
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div class="flex mb-4">
+                <input type="text" id="searchInput" placeholder="Search across all accounts..." class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-yellow-500 focus:border-yellow-500 dark:bg-gray-700 dark:text-gray-100">
+            </div>
+            
+            <h2 class="text-2xl font-semibold mb-4 border-b pb-2">Brainrot List</h2>
+            
+            <div id="brainrotsList" class="space-y-3">
+                <p id="empty-list-message" class="text-center italic text-gray-500 dark:text-gray-400">No brainrots collected yet!</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ====================================================================
+        // I. GLOBAL VARIABLES AND DOM ELEMENT REFERENCES
+        // ====================================================================
+        let accounts = [];
+        let currentAccount = 'Default';
+        let brainrots = [];
+        let editingBrainrotId = null;
+        let currentSelectedTraits = [];
+
+        // DOM Elements
+        const accountSelect = document.getElementById('accountSelect');
+        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+        const currentAccountDisplay = document.getElementById('current-account-display');
+        const newAccountNameInput = document.getElementById('newAccountNameInput');
+        const addAccountBtn = document.getElementById('addAccountBtn');
+        const brainrotsList = document.getElementById('brainrotsList');
+        const newBrainrotInput = document.getElementById('newBrainrotInput');
+        const raritySelect = document.getElementById('raritySelect');
+        const mutationSelect = document.getElementById('mutationSelect');
+        const perSecondInput = document.getElementById('perSecondInput');
+        const costInput = document.getElementById('costInput');
+        const traitSelect = document.getElementById('traitSelect');
+        const selectedTraitsDisplay = document.getElementById('selectedTraitsDisplay');
+        const addSelectedTraitBtn = document.getElementById('addSelectedTraitBtn');
+        const clearTraitsBtn = document.getElementById('clearTraitsBtn');
+        const addBrainrotBtn = document.getElementById('addBrainrotBtn');
+        const editButtonsDiv = document.getElementById('editButtonsDiv');
+        const saveEditBtn = document.getElementById('saveEditBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const searchInput = document.getElementById('searchInput');
+        const exportAllBtn = document.getElementById('exportAllBtn');
+        const importAllBtn = document.getElementById('importAllBtn');
+        const importJsonFile = document.getElementById('importJsonFile');
+        const clearAllDataBtn = document.getElementById('clearAllDataBtn');
+
+        // ====================================================================
+        // II. LOCAL STORAGE UTILITIES (MOCKUP/ASSUMED)
+        // ====================================================================
+        
+        /** Retrieves and parses an item from local storage, defaults to a provided value. */
+        function getLocalStorageItem(key, defaultValue = []) {
+            try {
+                const item = localStorage.getItem(key);
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (e) {
+                console.error(`Error reading key ${key} from localStorage:`, e);
+                return defaultValue;
+            }
+        }
+
+        /** Stringifies and saves an item to local storage. */
+        function setLocalStorageItem(key, value) {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                console.error(`Error writing key ${key} to localStorage:`, e);
+            }
+        }
+
+        // ====================================================================
+        // III. INITIALIZATION & UI MANAGEMENT
+        // ====================================================================
+
+        /** Initializes the application state from local storage. */
+        function initializeApp() {
+            accounts = getLocalStorageItem('brainrot_accounts', ['Default']);
+            if (accounts.length === 0) accounts.push('Default'); // Ensure at least one account
+
+            currentAccount = localStorage.getItem('brainrot_last_selected_account') || accounts[0];
+            if (!accounts.includes(currentAccount)) {
+                currentAccount = accounts[0];
+            }
+            
+            renderAccountsDropdown();
+            loadBrainrotsForCurrentAccount();
+            updateCurrentAccountDisplay();
+        }
+
+        /** Updates the display showing the current account name. */
+        function updateCurrentAccountDisplay() {
+            currentAccountDisplay.textContent = currentAccount;
+            deleteAccountBtn.disabled = accounts.length === 1;
+            if (deleteAccountBtn.disabled) {
+                deleteAccountBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                deleteAccountBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        /** Populates the account selection dropdown. */
+        function renderAccountsDropdown() {
+            accountSelect.innerHTML = '';
+            accounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account;
+                option.textContent = account;
+                accountSelect.appendChild(option);
+            });
+            accountSelect.value = currentAccount;
+        }
+
+        /** Loads brainrots for the currently selected account. */
+        function loadBrainrotsForCurrentAccount() {
+            brainrots = getLocalStorageItem(`brainrots_for_${currentAccount}`);
+            renderBrainrots(brainrots);
+        }
+
+        /** Saves the current brainrots array to the current account's local storage. */
+        function saveBrainrotsForCurrentAccount() {
+            setLocalStorageItem(`brainrots_for_${currentAccount}`, brainrots);
+        }
+
+        /** Deletes the currently selected account and switches to 'Default' or the next one. */
+        function deleteAccount() {
+            if (accounts.length <= 1) {
+                alert("Cannot delete the last remaining account.");
+                return;
+            }
+            if (confirm(`Are you sure you want to delete the account "${currentAccount}" and all its brainrots? This cannot be undone.`)) {
+                // 1. Remove brainrots data
+                localStorage.removeItem(`brainrots_for_${currentAccount}`);
+
+                // 2. Remove account from list
+                accounts = accounts.filter(acc => acc !== currentAccount);
+                setLocalStorageItem('brainrot_accounts', accounts);
+
+                // 3. Set new current account
+                currentAccount = accounts[0];
+                localStorage.setItem('brainrot_last_selected_account', currentAccount);
+                
+                // 4. Re-render UI
+                renderAccountsDropdown();
+                loadBrainrotsForCurrentAccount();
+                updateCurrentAccountDisplay();
+                cancelEdit(); // Ensure edit mode is cleared
+            }
+        }
+
+        // ====================================================================
+        // IV. BRAINROT RENDERING AND ACTION DELEGATION (FIXED)
+        // ====================================================================
+
+        /** Renders the list of brainrots to the DOM. */
+        function renderBrainrots(listToRender) {
+            brainrotsList.innerHTML = '';
+            
+            if (listToRender.length === 0) {
+                brainrotsList.innerHTML = '<p id="empty-list-message" class="text-center italic text-gray-500 dark:text-gray-400">No brainrots collected yet!</p>';
+                return;
+            }
+
+            listToRender.forEach(brainrot => {
+                // Determine the account name for the brainrot. 
+                // This is needed for search results which can show items from other accounts.
+                const accountNameForActions = brainrot.accountName || currentAccount;
+
+                const brainrotDiv = document.createElement('div');
+                brainrotDiv.className = 'brainrot-item flex justify-between items-center p-4 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700';
+                
+                let traitsHtml = '';
+                if (brainrot.trait) {
+                    traitsHtml = `<span class="text-xs font-mono bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100 px-2 py-0.5 rounded">${brainrot.trait.split(', ').join('</span> <span class="text-xs font-mono bg-yellow-200 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100 px-2 py-0.5 rounded">')}</span>`;
+                }
+
+                brainrotDiv.innerHTML = `
+                    <div class="flex-1 min-w-0 pr-4">
+                        <p class="font-medium text-lg truncate">${brainrot.text}</p>
+                        <div class="flex items-center space-x-3 text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <span>Rarity: <span class="font-semibold">${brainrot.rarity}</span></span>
+                            <span>Mutation: <span class="font-semibold">${brainrot.mutation}</span></span>
+                            <span>/s: <span class="font-semibold">${brainrot.perSecond || 'N/A'}</span></span>
+                            <span>Cost: <span class="font-semibold">${brainrot.cost || 'N/A'}</span></span>
+                        </div>
+                        <div class="mt-2 space-x-1">
+                            ${traitsHtml}
+                        </div>
+                        ${listToRender !== brainrots ? `<p class="mt-2 text-xs text-blue-500 dark:text-blue-400">Source: ${accountNameForActions}</p>` : ''}
+                    </div>
+                    <div class="flex items-center space-x-2 relative">
+                        <button class="move-brainrot-btn bg-yellow-500 hover:bg-yellow-600 text-white p-2 rounded-full shadow transition-transform" 
+                                data-id="${brainrot.id}" 
+                                data-account="${accountNameForActions}" 
+                                title="Move Brainrot">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        </button>
+                        <button class="edit-brainrot-btn bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-full shadow transition-transform" 
+                                data-id="${brainrot.id}" 
+                                data-account="${accountNameForActions}" 
+                                title="Edit Brainrot">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L15.232 5.232z"></path></svg>
+                        </button>
+                        <button class="delete-brainrot-btn bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow transition-transform" 
+                                data-id="${brainrot.id}" 
+                                data-account="${accountNameForActions}" 
+                                title="Delete Brainrot">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                `;
+                brainrotsList.appendChild(brainrotDiv);
+            });
+            
+            // This is the fixed part: No need to re-attach listeners on every button.
+            // We just make sure the dropdowns (if any) are closed after a full re-render.
+            document.querySelectorAll('.move-dropdown').forEach(dropdown => dropdown.remove());
+        }
+
+        /**
+         * Attaches a single, master click handler to the list container
+         * to handle all edit, delete, and move actions using event delegation.
+         */
+        function initializeBrainrotDelegation() {
+            if (!brainrotsList) {
+                console.error("The brainrots list container with ID 'brainrotsList' was not found.");
+                return;
+            }
+
+            // Only attach this listener ONCE
+            brainrotsList.addEventListener('click', (event) => {
+                const target = event.target;
+                
+                // Use closest() to find the button element even if an SVG/path inside was clicked
+                const button = target.closest('button');
+
+                if (!button) return; // Not a button, ignore
+
+                // Get common data attributes from the button
+                // Use event.currentTarget to ensure you're referencing the button itself
+                const id = parseInt(button.dataset.id);
+                const accountName = button.dataset.account;
+
+                if (!id || !accountName) return;
+
+                if (button.classList.contains('delete-brainrot-btn')) {
+                    deleteBrainrot(id, accountName);
+                } else if (button.classList.contains('edit-brainrot-btn')) {
+                    editBrainrot(id, accountName);
+                } else if (button.classList.contains('move-brainrot-btn')) {
+                    toggleMoveDropdown(button, id, accountName);
+                }
+            });
+        }
+        
+        // The original renderBrainrotListeners is now obsolete and replaced by the single call to initializeBrainrotDelegation.
+        // I've kept a stub for compatibility, but its actual logic is now empty.
+        function renderBrainrotListeners() {
+            document.querySelectorAll('.move-dropdown').forEach(dropdown => dropdown.remove());
+        }
+
+        // ====================================================================
+        // V. BRAINROT ACTIONS (From Part 2 - Unchanged Logic)
+        // ====================================================================
+        
+        /**
+         * Filters all brainrots based on the search input and renders the results.
+         */
+        function filterAndRenderBrainrots() {
+            const query = searchInput.value.toLowerCase();
+            if (query.trim() === '') {
+                loadBrainrotsForCurrentAccount();
+                return;
+            }
+            // Logic to get all brainrots across all accounts
+            const allBrainrots = getAllBrainrots();
+            const filteredBrainrots = allBrainrots.filter(brainrot => {
+                const searchString = `${brainrot.text} ${brainrot.rarity} ${brainrot.mutation} ${brainrot.trait} ${brainrot.perSecond} ${brainrot.cost} ${brainrot.accountName}`.toLowerCase();
+                return searchString.includes(query);
+            });
+            renderBrainrots(filteredBrainrots);
+        }
+        
+        /** Retrieves all brainrots from all accounts. */
+        function getAllBrainrots() {
+            const all = [];
+            accounts.forEach(accountName => {
+                const accountBrainrots = getLocalStorageItem(`brainrots_for_${accountName}`);
+                // Add account name to each brainrot for filtering/action purposes
+                accountBrainrots.forEach(b => b.accountName = accountName);
+                all.push(...accountBrainrots);
+            });
+            return all;
+        }
+
+        /**
+         * Toggles the move dropdown for a specific brainrot.
+         * @param {HTMLElement} button - The button element that was clicked.
+         * @param {number} brainrotId - The ID of the brainrot to move.
+         * @param {string} sourceAccountName - The name of the account the brainrot is currently in.
+         */
+        function toggleMoveDropdown(button, brainrotId, sourceAccountName) {
+            // Check if a dropdown is already open and close it
+            const existingDropdown = button.parentNode.querySelector('.move-dropdown');
+            if (existingDropdown) {
+                existingDropdown.remove();
+                return;
+            }
+
+            // Create the new dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'move-dropdown';
+
+            const accountsToMoveTo = accounts.filter(acc => acc !== sourceAccountName);
+
+            if (accountsToMoveTo.length === 0) {
+                dropdown.innerHTML = `<button disabled class="text-gray-400 dark:text-gray-500 italic cursor-not-allowed">No other accounts</button>`;
+            } else {
+                accountsToMoveTo.forEach(accountName => {
+                    const moveBtn = document.createElement('button');
+                    moveBtn.textContent = accountName;
+                    moveBtn.addEventListener('click', () => {
+                        moveBrainrotToAccount(brainrotId, sourceAccountName, accountName);
+                        dropdown.remove(); // Close the dropdown after selection
+                    });
+                    dropdown.appendChild(moveBtn);
+                });
+            }
+
+            button.parentNode.appendChild(dropdown);
+        }
+
+        /**
+         * Moves a brainrot to a different account.
+         * @param {number} idToMove - The ID of the brainrot to move.
+         * @param {string} sourceAccountName - The name of the account the brainrot is currently in.
+         * @param {string} destinationAccountName - The name of the account to move the brainrot to.
+         */
+        function moveBrainrotToAccount(idToMove, sourceAccountName, destinationAccountName) {
+            const sourceBrainrots = getLocalStorageItem(`brainrots_for_${sourceAccountName}`);
+            const brainrotToMove = sourceBrainrots.find(b => b.id === idToMove);
+            if (!brainrotToMove) {
+                alert("Error: Brainrot not found in source account.");
+                return;
+            }
+
+            // 1. Remove from source account
+            const updatedSourceBrainrots = sourceBrainrots.filter(b => b.id !== idToMove);
+            setLocalStorageItem(`brainrots_for_${sourceAccountName}`, updatedSourceBrainrots);
+            
+            // Remove the temporary accountName property before moving
+            delete brainrotToMove.accountName; 
+
+            // 2. Add to destination account
+            const destinationBrainrots = getLocalStorageItem(`brainrots_for_${destinationAccountName}`);
+            destinationBrainrots.push(brainrotToMove);
+            setLocalStorageItem(`brainrots_for_${destinationAccountName}`, destinationBrainrots);
+
+            // 3. Re-render the current list or search results
+            alert(`Brainrot moved to ${destinationAccountName}!`);
+            
+            if (searchInput.value.trim() !== '') {
+                filterAndRenderBrainrots();
+            } else {
+                loadBrainrotsForCurrentAccount();
+            }
+        }
+
+        /**
+         * Resets the trait selection area (dropdown and display).
+         */
+        function resetTraitSelectionArea() {
+            traitSelect.value = traitSelect.options[0].value;
+            currentSelectedTraits = [];
+            selectedTraitsDisplay.value = '';
+        }
+
+        /**
+         * Adds a selected trait to the currentSelectedTraits array and updates the display.
+         */
+        function addCurrentSelectedTrait() {
+            const selectedTrait = traitSelect.value;
+            if (selectedTrait && selectedTrait !== "None" && !currentSelectedTraits.includes(selectedTrait)) {
+                currentSelectedTraits.push(selectedTrait);
+                selectedTraitsDisplay.value = currentSelectedTraits.join(', ');
+            }
+        }
+
+        /**
+         * Adds a new brainrot to the current account's list.
+         */
+        function addBrainrot() {
+            const text = newBrainrotInput.value.trim();
+            const rarity = raritySelect.value;
+            const mutation = mutationSelect.value;
+            const perSecond = perSecondInput.value.trim();
+            const cost = costInput.value.trim();
+
+            if (text) {
+                const newEntry = {
+                    id: Date.now(), // Use Date.now() for unique ID for new items
+                    text: text,
+                    rarity: rarity,
+                    mutation: mutation,
+                    trait: currentSelectedTraits.join(', '),
+                    perSecond: perSecond,
+                    cost: cost,
+                };
+                brainrots.push(newEntry);
+                saveBrainrotsForCurrentAccount();
+                newBrainrotInput.value = '';
+                raritySelect.value = raritySelect.options[0].value;
+                mutationSelect.value = mutationSelect.options[0].value;
+                perSecondInput.value = '';
+                costInput.value = '';
+                resetTraitSelectionArea();
+                loadBrainrotsForCurrentAccount();
+            }
+        }
+
+        /**
+         * Deletes a brainrot from the current account's list.
+         * @param {number} idToDelete - The ID of the brainrot to delete.
+         * @param {string} accountName - The name of the account to delete from.
+         */
+        function deleteBrainrot(idToDelete, accountName) {
+            const brainrotsForAccount = getLocalStorageItem(`brainrots_for_${accountName}`);
+            const updatedBrainrots = brainrotsForAccount.filter(brainrot => brainrot.id !== idToDelete);
+            setLocalStorageItem(`brainrots_for_${accountName}`, updatedBrainrots);
+            
+            // Re-render the current view
+            if (searchInput.value.trim() !== '') {
+                filterAndRenderBrainrots();
+            } else {
+                if (accountName === currentAccount) {
+                    brainrots = updatedBrainrots;
+                    renderBrainrots(brainrots);
+                } else {
+                    // If deleting from a different account while in search view, just re-filter
+                    filterAndRenderBrainrots();
+                }
+            }
+            
+            if (editingBrainrotId === idToDelete) {
+                cancelEdit();
+            }
+        }
+
+        /**
+         * Enters edit mode for a specific brainrot.
+         * @param {number} idToEdit - The ID of the brainrot to edit.
+         * @param {string} accountName - The name of the account the brainrot is in.
+         */
+        function editBrainrot(idToEdit, accountName) {
+            // First, switch the selected account to the one that holds the brainrot if not already selected
+            if (currentAccount !== accountName) {
+                currentAccount = accountName;
+                localStorage.setItem('brainrot_last_selected_account', currentAccount);
+                renderAccountsDropdown();
+                updateCurrentAccountDisplay();
+                // Load brainrots for the new current account BEFORE finding the one to edit
+                loadBrainrotsForCurrentAccount();
+            }
+            searchInput.value = ''; // Clear search to show the edited item clearly
+
+            const brainrotToEdit = brainrots.find(b => b.id === idToEdit);
+            if (brainrotToEdit) {
+                editingBrainrotId = idToEdit;
+                newBrainrotInput.value = brainrotToEdit.text;
+                raritySelect.value = brainrotToEdit.rarity || raritySelect.options[0].value;
+                mutationSelect.value = brainrotToEdit.mutation || mutationSelect.options[0].value;
+
+                // Populate currentSelectedTraits and display for editing
+                currentSelectedTraits = brainrotToEdit.trait ? brainrotToEdit.trait.split(', ').filter(t => t.length > 0) : [];
+                selectedTraitsDisplay.value = currentSelectedTraits.join(', ');
+                traitSelect.value = traitSelect.options[0].value;
+
+                perSecondInput.value = brainrotToEdit.perSecond || '';
+                costInput.value = brainrotToEdit.cost || '';
+
+                addBrainrotBtn.classList.add('hidden');
+                editButtonsDiv.classList.remove('hidden');
+
+                newBrainrotInput.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        /**
+         * Saves the changes made to a brainrot.
+         */
+        function saveEditedBrainrot() {
+            if (editingBrainrotId === null) return;
+
+            const index = brainrots.findIndex(b => b.id === editingBrainrotId);
+            if (index !== -1) {
+                const updatedText = newBrainrotInput.value.trim();
+                const updatedRarity = raritySelect.value;
+                const updatedMutation = mutationSelect.value;
+                const updatedPerSecond = perSecondInput.value.trim();
+                const updatedCost = costInput.value.trim();
+
+                if (updatedText) {
+                    brainrots[index].text = updatedText;
+                    brainrots[index].rarity = updatedRarity;
+                    brainrots[index].mutation = updatedMutation;
+                    brainrots[index].trait = currentSelectedTraits.join(', ');
+                    brainrots[index].perSecond = updatedPerSecond;
+                    brainrots[index].cost = updatedCost;
+
+                    saveBrainrotsForCurrentAccount();
+                    loadBrainrotsForCurrentAccount();
+                    cancelEdit();
+                } else {
+                    alert('Brainrot text cannot be empty. Please provide text or cancel edit.');
+                }
+            }
+        }
+
+        /**
+         * Cancels the current edit operation and clears input fields.
+         */
+        function cancelEdit() {
+            editingBrainrotId = null;
+            newBrainrotInput.value = '';
+            raritySelect.value = raritySelect.options[0].value;
+            mutationSelect.value = mutationSelect.options[0].value;
+            perSecondInput.value = '';
+            costInput.value = '';
+            resetTraitSelectionArea();
+            addBrainrotBtn.classList.remove('hidden');
+            editButtonsDiv.classList.add('hidden');
+        }
+
+        // ====================================================================
+        // VI. EXPORT/IMPORT/CLEAR DATA (FIXED LOGIC FOR ID GENERATION)
+        // ====================================================================
+
+        /**
+         * Exports all accounts' data as a single JSON file.
+         */
+        function exportAllDataAsJson() {
+            const allData = {};
+            accounts.forEach(account => {
+                const accountBrainrots = getLocalStorageItem(`brainrots_for_${account}`);
+                allData[account] = accountBrainrots;
+            });
+            const dataStr = JSON.stringify(allData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'brainrots_collection.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * Imports all accounts and their brainrots from a JSON file.
+         * @param {File} file - The JSON file to import.
+         */
+        function importAllDataFromJson(file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+                    if (typeof importedData !== 'object' || Array.isArray(importedData)) {
+                        alert('Error: The imported JSON file is not in the correct format (should be an object of accounts).');
+                        return;
+                    }
+
+                    let newAccountsAdded = 0;
+                    let totalBrainrotsAdded = 0;
+                    // Start a unique ID counter based on the current time
+                    let newIdCounter = Date.now(); 
+
+                    for (const accountName in importedData) {
+                        if (importedData.hasOwnProperty(accountName)) {
+                            // Add new account if it doesn't exist
+                            if (!accounts.includes(accountName)) {
+                                accounts.push(accountName);
+                                newAccountsAdded++;
+                            }
+
+                            // Get existing brainrots for the account
+                            const existingBrainrots = getLocalStorageItem(`brainrots_for_${accountName}`);
+                            const importedBrainrots = importedData[accountName];
+
+                            if (Array.isArray(importedBrainrots)) {
+                                const newBrainrots = importedBrainrots.map(item => {
+                                    // Assign a new, unique ID to each imported brainrot
+                                    // Use an incrementing counter for guaranteed uniqueness within the import
+                                    newIdCounter++;
+                                    // Use the incrementing counter as the new ID
+                                    return { ...item, id: newIdCounter }; 
+                                });
+                                
+                                const mergedBrainrots = existingBrainrots.concat(newBrainrots);
+                                setLocalStorageItem(`brainrots_for_${accountName}`, mergedBrainrots);
+                                totalBrainrotsAdded += newBrainrots.length;
+                            } else {
+                                console.warn(`Skipping account "${accountName}": brainrot data is not an array.`);
+                            }
+                        }
+                    }
+
+                    // Update local storage for accounts list
+                    setLocalStorageItem('brainrot_accounts', accounts);
+                    
+                    alert(`Import successful! Added ${newAccountsAdded} new accounts and ${totalBrainrotsAdded} brainrots.`);
+                    
+                    initializeApp(); // Re-initialize to update the UI
+                } catch (error) {
+                    alert('Error: Could not read or parse the JSON file. Please ensure it is a valid JSON file.');
+                    console.error('JSON import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /**
+         * Deletes all data related to the application from local storage.
+         */
+        function clearAllData() {
+            if (confirm("WARNING: This will permanently delete ALL accounts and brainrots from your browser's local storage. This action cannot be undone. Are you sure you want to proceed?")) {
+                // Clear all keys related to the app
+                Object.keys(localStorage).forEach(key => {
+                    if (key.startsWith('brainrot_') || key.startsWith('brainrots_for_')) {
+                        localStorage.removeItem(key);
+                    }
+                });
+                alert("All data has been cleared. The page will now reload.");
+                window.location.reload();
+            }
+        }
+        
+        // ====================================================================
+        // VII. EVENT LISTENERS (Fixed to include delegation)
+        // ====================================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApp();
+            initializeBrainrotDelegation(); // The single, efficient listener for edit/delete/move
+        });
+
+        accountSelect.addEventListener('change', (event) => {
+            currentAccount = event.target.value;
+            localStorage.setItem('brainrot_last_selected_account', currentAccount);
+            loadBrainrotsForCurrentAccount();
+            updateCurrentAccountDisplay();
+            cancelEdit();
+        });
+        
+        searchInput.addEventListener('input', filterAndRenderBrainrots);
+
+        addAccountBtn.addEventListener('click', () => {
+            const newAccountName = newAccountNameInput.value.trim();
+            if (newAccountName && !accounts.includes(newAccountName)) {
+                accounts.push(newAccountName);
+                setLocalStorageItem('brainrot_accounts', accounts);
+                newAccountNameInput.value = '';
+                renderAccountsDropdown();
+                // Automatically switch to the new account
+                accountSelect.value = newAccountName;
+                accountSelect.dispatchEvent(new Event('change'));
+            } else if (accounts.includes(newAccountName)) {
+                alert('Account name already exists. Please choose a different name.');
+            }
+        });
+
+        deleteAccountBtn.addEventListener('click', deleteAccount);
+
+        addBrainrotBtn.addEventListener('click', addBrainrot);
+
+        saveEditBtn.addEventListener('click', saveEditedBrainrot);
+
+        cancelEditBtn.addEventListener('click', cancelEdit);
+
+        // Export/Import buttons
+        exportAllBtn.addEventListener('click', exportAllDataAsJson);
+        importAllBtn.addEventListener('click', () => importJsonFile.click());
+        importJsonFile.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                importAllDataFromJson(file);
+            }
+        });
+        
+        clearAllDataBtn.addEventListener('click', clearAllData);
+
+        // Trait management
+        addSelectedTraitBtn.addEventListener('click', addCurrentSelectedTrait);
+        clearTraitsBtn.addEventListener('click', resetTraitSelectionArea);
+
+    </script>
+</body>
+</html>
